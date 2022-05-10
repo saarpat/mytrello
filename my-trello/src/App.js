@@ -1,4 +1,13 @@
-import React, { useState } from 'react';
+/* TO DO: 
+add delete list button again
+
+1) ADD DELETE BUTTON TO CARDS 
+2) CHANGE ADD NEW CARD AND LIST TO FORMS INSTEAD OF REGULAR TAGS
+3) THINK IF I CAN HIDE LIST OR CARD WITH USEREDUCED
+*/
+
+
+import React, { useState, useEffect, useRef } from 'react';
 import { AddNewElement, NamePicker } from "./Components/AddNewElementModule"
 import { List } from "./Components/List"
 
@@ -9,8 +18,11 @@ const App = () => {
   // Add new list to Trello's lists array
   const [listsArr, editList] = useState([]);
 
+  const renderCount = useRef(0);
+
+  useEffect(() => { renderCount.current = renderCount.current + 1 });
+
   const hideElement = (id, arr) => {
-    console.log("toggleHiddenProperty");
     let newArr = [...arr];
     newArr[id].hidden = true;
     return newArr
@@ -44,9 +56,7 @@ const App = () => {
 
           </>
         ))}
-      </div>
-      {JSON.stringify(listsArr)};
-
+      </div>{renderCount.current}
     </div>
   );
 };

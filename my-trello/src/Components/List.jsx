@@ -16,22 +16,37 @@ export const List = ({ datakey, listName, deleteList }) => {
     // Create a New card Button click state
     const [isInitialState, setState] = useState(true);
     // Add new list to Trello's lists array
-    const [cardsArr, addNewCard] = useState([]);
+    const [cardsArr, editCardsArr] = useState([]);
 
     const addNewCardBtnPress = (newCardName) => {
         if (newCardName.replace(/\s/g, '') !== "") {
-            const newCard = [<Card key={cardsArr.length} cardName={newCardName.trim()} />];
-            addNewCard(cardsArr.concat(newCard));
+            const newCard = [{
+                component: <Card key={cardsArr.length} datakey={cardsArr.length} cardName={newCardName.trim()} deleteCard={key => editCardsArr(cardsArr => hideElement(key, cardsArr))} />,
+                hidden: false
+            }];
+            editCardsArr(cardsArr.concat(newCard));
             setState(true);
         }
     };
+
+    const hideElement = (id, arr) => {
+        let newArr = [...arr];
+        newArr[id].hidden = true;
+        return newArr
+    };
+
     return (
         <div className='list'>
             <div className={`list-title`}>
                 <h2 contentEditable="true">{listName}</h2>
             </div>
             <div className='cards'>
-                {cardsArr}
+                {cardsArr.map(result => (
+                    <>
+                        {!result.hidden && result.component}
+
+                    </>
+                ))}
             </div>
             <div className='add-new-card-container'>
                 {isInitialState ?
@@ -39,7 +54,7 @@ export const List = ({ datakey, listName, deleteList }) => {
                     <NamePicker elementType={"Card"} resetState={() => setState(true)} onCreateNewClick={addNewCardBtnPress} />}
             </div>
             <div className="delete-button">
-                <button onClick={(e) => deleteList(datakey)}> Delete </button>
+                <button onClick={(e) => deleteList(datakey)}> Delete list</button>
             </div>
         </div>
     )
