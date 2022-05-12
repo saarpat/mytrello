@@ -1,13 +1,21 @@
-import React, { useState } from "react";
-
+import React, { useState, useEffect } from "react";
+import { Droppable } from "react-beautiful-dnd";
 import { AddNewElement, NamePicker } from "./AddNewElementModule"
 import { Card } from "./Card"
+import styled from 'styled-components';
+
+const Container = styled.div`
+margin: 8px;
+border: 1px solid lightgrey;
+border-radius: 2px;
+`;
+const Title = styled.h3`
+padding: 8px;`;
+const TaskList = styled.div`
+padding: 8px;`;
 
 
-// NEED TO ADD KEYS TO CARD TAG
-
-
-export const List = ({ datakey, listName, deleteList }) => {
+export const List = ({ datakey, listName, deleteList, updateParentList }) => {
 
 
     //TO DO: SHOULD I RAISE THESE STATES UP?
@@ -18,10 +26,20 @@ export const List = ({ datakey, listName, deleteList }) => {
     // Add new list to Trello's lists array
     const [cardsArr, editCardsArr] = useState([]);
 
+    useEffect(() => {
+        if (cardsArr.length > 0) {
+            updateParentList(datakey, cardsArr[cardsArr.length - 1].datakey);
+        }
+    }
+        , [cardsArr]);
+
     const addNewCardBtnPress = (newCardName) => {
         if (newCardName.replace(/\s/g, '') !== "") {
             const newCard = [{
-                component: <Card key={cardsArr.length} datakey={cardsArr.length} cardName={newCardName.trim()} deleteCard={key => editCardsArr(cardsArr => hideElement(key, cardsArr))} />,
+                key: cardsArr.length,
+                datakey: cardsArr.length,
+                cardName: newCardName.trim(),
+                deleteCard: key => editCardsArr(cardsArr => hideElement(key, cardsArr)),
                 hidden: false
             }];
             editCardsArr(cardsArr.concat(newCard));
@@ -36,26 +54,41 @@ export const List = ({ datakey, listName, deleteList }) => {
     };
 
     return (
-        <div className='list'>
-            <div className={`list-title`}>
-                <h2 contentEditable="true">{listName}</h2>
-            </div>
-            <div className='cards'>
-                {cardsArr.map(result => (
-                    <>
-                        {!result.hidden && result.component}
+        <Container>
+            <div className='list'>
+                <Title>
+                    <div className={`list - title`}>
+                        <h2 contentEditable="true">{listName}</h2>
+                    </div>
+                </Title>
+                <Droppable droppableId={`droppable-${datakey}`}>
+                    {provided => (
+                        <TaskList
+                            ref={provided.innerRef}
+                            {...provided.droppableProps}
+                        >
+                            <div className='cards'>
+                                {cardsArr.map((result, index) => (
+                                    <>
+                                        {!result.hidden &&
+                                            <Card key={result.key} datakey={result.datakey} index={index} cardName={result.cardName} deleteCard={result.deleteCard} />}
 
-                    </>
-                ))}
+                                    </>
+                                ))}
+                                {provided.placeholder}
+                            </div>
+                        </TaskList>
+                    )}
+                </Droppable>
+                <div className='add-new-card-container'>
+                    {isInitialState ?
+                        <AddNewElement elementType={"Card"} onClick={() => setState(false)} buttonText={"Add another card"} /> :
+                        <NamePicker elementType={"Card"} resetState={() => setState(true)} onCreateNewClick={addNewCardBtnPress} />}
+                </div>
+                <div className="delete-button">
+                    <button onClick={(e) => deleteList(datakey)}> Delete list</button>
+                </div>
             </div>
-            <div className='add-new-card-container'>
-                {isInitialState ?
-                    <AddNewElement elementType={"Card"} onClick={() => setState(false)} buttonText={"Add another card"} /> :
-                    <NamePicker elementType={"Card"} resetState={() => setState(true)} onCreateNewClick={addNewCardBtnPress} />}
-            </div>
-            <div className="delete-button">
-                <button onClick={(e) => deleteList(datakey)}> Delete list</button>
-            </div>
-        </div>
+        </Container>
     )
 };
